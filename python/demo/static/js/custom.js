@@ -27,6 +27,10 @@ function updateForm(filekey, blobkey, filename) {
   $('#filekey').val(filekey);
   $('#blobkey').val(blobkey);
 
+  $('#purchase_count').removeAttr('disabled');
+  $('#revenue_per_song').removeAttr('disabled');
+  $('#artist_song_count').removeAttr('disabled');
+  $('#revenue_per_artist').removeAttr('disabled');
   $('#word_count').removeAttr('disabled');
   $('#index').removeAttr('disabled');
   $('#phrases').removeAttr('disabled');

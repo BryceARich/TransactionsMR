@@ -17,6 +17,10 @@
           <td>name</td>
           <td>uploaded on</td>
           <td>source</td>
+          <td>purchasecount link</td>
+          <td>revenuepersong link</td>
+          <td>artistsongcount link</td>
+          <td>revenueperartist link</td>
           <td>wordcount link</td>
           <td>index link</td>
           <td>phrases link</td>
@@ -28,6 +32,26 @@
           <td><a href="/blobstore/{{ item.blobkey }}">{{ item.filename }}</a></td>
           <td>{{ item.uploadedOn }}</td>
           <td>{{ item.source }}</td>
+          <td>
+            {% if item.purchasecount_link %}
+            <a href="{{ item.purchasecount_link }}">purchasecount</a>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.revenuepersong_link %}
+            <a href="{{ item.revenuepersong_link }}">revenuepersong</a>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.artistsongcount_link %}
+            <a href="{{ item.artistsongcount_link }}">artistsongcount</a>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.revenueperartist_link %}
+            <a href="{{ item.revenueperartist_link }}">revenueperartist</a>
+            {% endif %}
+          </td>
           <td>
             {% if item.wordcount_link %}
             <a href="{{ item.wordcount_link }}">wordcount</a>
@@ -76,6 +100,10 @@
         <br />
         <table>
           <tr>
+            <td><input type="submit" id="purchase_count" name="purchase_count" value="Purchase Count" disabled="true"></td>
+            <td><input type="submit" id="revenue_per_song" name="revenue_per_song" value="Revenue Per Song" disabled="true"></td>
+            <td><input type="submit" id="artist_song_count" name="artist_song_count" value="Artist Song Count" disabled="true"></td>
+            <td><input type="submit" id="revenue_per_artist" name="revenue_per_artist" value="Revenue Per Artist" disabled="true"></td>
             <td><input type="submit" id="word_count" name="word_count" value="Word Count" disabled="true"></td>
             <td><input type="submit" id="index" name="index" value="Index" disabled="true"></td>
             <td><input type="submit" id="phrases" name="phrases" value="Phrases" disabled="true"></td>
