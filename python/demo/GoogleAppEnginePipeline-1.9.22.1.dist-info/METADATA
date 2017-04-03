@@ -1,0 +1,17 @@
+Metadata-Version: 2.0
+Name: GoogleAppEnginePipeline
+Version: 1.9.22.1
+Summary: Enable asynchronous pipeline style data processing on App Engine
+Home-page: https://github.com/GoogleCloudPlatform/appengine-pipelines
+Author: Google App Engine
+Author-email: app-engine-pipeline-api@googlegroups.com
+License: Apache License 2.0
+Keywords: google app engine pipeline data processing
+Platform: UNKNOWN
+Requires-Dist: GoogleAppEngineCloudStorageClient (>=1.9.22)
+Provides-Extra: python2.5
+Requires-Dist: simplejson (>=3.6.5); extra == 'python2.5'
+
+UNKNOWN
+
+

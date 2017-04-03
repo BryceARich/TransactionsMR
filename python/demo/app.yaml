@@ -1,0 +1,28 @@
+application: mapreduce-demo
+version: default
+module: default
+runtime: python27
+api_version: 1
+threadsafe: no
+
+handlers:
+- url: /favicon.ico
+  static_files: static/images/favicon.ico
+  upload: static/images/favicon.ico
+
+- url: /static/js/custom.js
+  static_files: static/js/custom.js
+  upload: static/js/custom.js
+
+- url: .*
+  script: main.app
+  login: admin
+
+includes:
+- mapreduce/include.yaml
+
+libraries:
+- name: webapp2
+  version: "2.5.1"
+- name: jinja2
+  version: "2.6"

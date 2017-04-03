@@ -1,0 +1,1 @@
+{"generator": "bdist_wheel (0.26.0)", "summary": "A simple chart library for Python", "extensions": {"python.details": {"project_urls": {"Home": "http://code.google.com/p/graphy/"}, "document_names": {"description": "DESCRIPTION.rst"}}}, "metadata_version": "2.0", "name": "Graphy", "version": "1.0.0"}
