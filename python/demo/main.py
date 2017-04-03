@@ -73,14 +73,14 @@ class FileMetadata(db.Model):
   uploadedOn = db.DateTimeProperty()
   source = db.StringProperty()
   blobkey = db.StringProperty()
-  purchasecount_link = db.StringProperty()
-  revenuepersong_link = db.StringProperty()
-  artistsongcount_link = db.StringProperty()
-  revenueperartist_link = db.StringProperty()
-  purchasecountrock_link = db.StringProperty()
-  revenuepersongrock_link = db.StringProperty()
-  artistsongcountrock_link = db.StringProperty()
-  revenueperartistrock_link = db.StringProperty()
+  purchasecount_link = db.StringListProperty()
+  revenuepersong_link = db.StringListProperty()
+  artistsongcount_link = db.StringListProperty()
+  revenueperartist_link = db.StringListProperty()
+  purchasecountrock_link = db.StringListProperty()
+  revenuepersongrock_link = db.StringListProperty()
+  artistsongcountrock_link = db.StringListProperty()
+  revenueperartistrock_link = db.StringListProperty()
   wordcount_link = db.StringProperty()
   index_link = db.StringProperty()
   phrases_link = db.StringProperty()
@@ -503,7 +503,7 @@ class PurchaseCountPipeline(base_handler.PipelineBase):
                 "content_type": "text/plain",
             }
         },
-        shards=1)
+        shards=2)
     yield StoreOutput("PurchaseCount", filekey, output)
 
 class RevenuePerSongPipeline(base_handler.PipelineBase):
@@ -532,7 +532,7 @@ class RevenuePerSongPipeline(base_handler.PipelineBase):
                 "content_type": "text/plain",
             }
         },
-        shards=1)
+        shards=2)
     yield StoreOutput("RevenuePerSong", filekey, output)
 
 class ArtistSongCountPipeline(base_handler.PipelineBase):
@@ -561,7 +561,7 @@ class ArtistSongCountPipeline(base_handler.PipelineBase):
                 "content_type": "text/plain",
             }
         },
-        shards=1)
+        shards=2)
     yield StoreOutput("ArtistSongCount", filekey, output)
 
 class RevenuePerArtistPipeline(base_handler.PipelineBase):
@@ -590,7 +590,7 @@ class RevenuePerArtistPipeline(base_handler.PipelineBase):
                 "content_type": "text/plain",
             }
         },
-        shards=1)
+        shards=2)
     yield StoreOutput("RevenuePerArtist", filekey, output)
 
 class PurchaseCountRockPipeline(base_handler.PipelineBase):
@@ -619,7 +619,7 @@ class PurchaseCountRockPipeline(base_handler.PipelineBase):
                 "content_type": "text/plain",
             }
         },
-        shards=1)
+        shards=2)
     yield StoreOutput("PurchaseCountRock", filekey, output)
 
 class RevenuePerSongRockPipeline(base_handler.PipelineBase):
@@ -648,7 +648,7 @@ class RevenuePerSongRockPipeline(base_handler.PipelineBase):
                 "content_type": "text/plain",
             }
         },
-        shards=1)
+        shards=2)
     yield StoreOutput("RevenuePerSongRock", filekey, output)
 
 class ArtistSongCountRockPipeline(base_handler.PipelineBase):
@@ -677,7 +677,7 @@ class ArtistSongCountRockPipeline(base_handler.PipelineBase):
                 "content_type": "text/plain",
             }
         },
-        shards=1)
+        shards=2)
     yield StoreOutput("ArtistSongCountRock", filekey, output)
 
 class RevenuePerArtistRockPipeline(base_handler.PipelineBase):
@@ -706,7 +706,7 @@ class RevenuePerArtistRockPipeline(base_handler.PipelineBase):
                 "content_type": "text/plain",
             }
         },
-        shards=1)
+        shards=2)
     yield StoreOutput("RevenuePerArtistRock", filekey, output)
 
 
@@ -813,9 +813,15 @@ class StoreOutput(base_handler.PipelineBase):
     key = db.Key(encoded=encoded_key)
     m = FileMetadata.get(key)
 
-    blobstore_filename = "/gs" + output[0]
-    blobstore_gs_key = blobstore.create_gs_key(blobstore_filename)
-    url_path = "/blobstore/" + blobstore_gs_key
+    url_path = []
+
+    for o in output:
+      blobstore_filename = "/gs" + o
+      blobstore_gs_key = blobstore.create_gs_key(blobstore_filename)
+      curr_path = "/blobstore/" + blobstore_gs_key
+      url_path += [curr_path]
+
+
 
     if mr_type == "PurchaseCount":
       m.purchasecount_link = url_path

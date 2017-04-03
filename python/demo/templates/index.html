@@ -38,42 +38,58 @@
           <td>{{ item.source }}</td>
           <td>
             {% if item.purchasecount_link %}
-            <a href="{{ item.purchasecount_link }}">purchasecount</a>
+              {% for link in item.purchasecount_link %}
+                <a href="{{ link }}">purchasecount</a>
+              {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.revenuepersong_link %}
-            <a href="{{ item.revenuepersong_link }}">revenuepersong</a>
+              {% for link in item.purchasecount_link %}
+                <a href="{{ link }}">revenuepersong</a>
+              {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.artistsongcount_link %}
-            <a href="{{ item.artistsongcount_link }}">artistsongcount</a>
+              {% for link in item.purchasecount_link %}
+                <a href="{{ link }}">artistsongcount</a>
+              {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.revenueperartist_link %}
-            <a href="{{ item.revenueperartist_link }}">revenueperartist</a>
+              {% for link in item.purchasecount_link %}
+                <a href="{{ link }}">revenueperartist</a>
+              {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.purchasecountrock_link %}
-            <a href="{{ item.purchasecountrock_link }}">purchasecountrock</a>
+              {% for link in item.purchasecount_link %}
+                <a href="{{ link }}">purchasecountrock</a>
+              {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.revenuepersongrock_link %}
-            <a href="{{ item.revenuepersongrock_link }}">revenuepersongrock</a>
+              {% for link in item.purchasecount_link %}
+                <a href="{{ link }}">revenuepersongrock</a>
+              {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.artistsongcountrock_link %}
-            <a href="{{ item.artistsongcountrock_link }}">artistsongcountrock</a>
+              {% for link in item.purchasecount_link %}
+                <a href="{{ link }}">artistsongcountrock</a>
+              {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.revenueperartistrock_link %}
-            <a href="{{ item.revenueperartistrock_link }}">revenueperartistrock</a>
+              {% for link in item.purchasecount_link %}
+                <a href="{{ link }}">revenueperartistrock</a>
+              {% endfor %}
             {% endif %}
           </td>
           <td>
