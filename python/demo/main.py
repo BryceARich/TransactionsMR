@@ -257,6 +257,36 @@ def phrases_reduce(key, values):
     if count > threshold:
       yield "%s:%s\n" % (words, filename)
 
+class SongPairsPipeline(base_handler.PipelineBase):
+  """A pipeline to run Word count demo.
+
+  Args:
+    blobkey: blobkey to process as string. Should be a zip archive with
+      text files inside.
+  """
+
+  def run(self, filekey, blobkey):
+    logging.debug("filename is %s" % filekey)
+    bucket_name = app_identity.get_default_gcs_bucket_name()
+    output = yield mapreduce_pipeline.MapreducePipeline(
+        "song_pairs",
+        "main.song_pairs_map",
+        "main.song_pairs_reduce",
+        "mapreduce.input_readers.BlobstoreZipInputReader",
+        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
+        mapper_params={
+            "blob_key": blobkey,
+        },
+        reducer_params={
+            "output_writer": {
+                "bucket_name": bucket_name,
+                "content_type": "text/plain",
+            }
+        },
+        shards=16)
+    yield StoreOutput("WordCount", filekey, output)
+
+
 class WordCountPipeline(base_handler.PipelineBase):
   """A pipeline to run Word count demo.
 
