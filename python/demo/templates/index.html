@@ -21,6 +21,10 @@
           <td>revenuepersong link</td>
           <td>artistsongcount link</td>
           <td>revenueperartist link</td>
+          <td>purchasecountrock link</td>
+          <td>revenuepersongrock link</td>
+          <td>artistsongcountrock link</td>
+          <td>revenueperartistrock link</td>
           <td>wordcount link</td>
           <td>index link</td>
           <td>phrases link</td>
@@ -50,6 +54,26 @@
           <td>
             {% if item.revenueperartist_link %}
             <a href="{{ item.revenueperartist_link }}">revenueperartist</a>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.purchasecountrock_link %}
+            <a href="{{ item.purchasecountrock_link }}">purchasecountrock</a>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.revenuepersongrock_link %}
+            <a href="{{ item.revenuepersongrock_link }}">revenuepersongrock</a>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.artistsongcountrock_link %}
+            <a href="{{ item.artistsongcountrock_link }}">artistsongcountrock</a>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.revenueperartistrock_link %}
+            <a href="{{ item.revenueperartistrock_link }}">revenueperartistrock</a>
             {% endif %}
           </td>
           <td>
@@ -104,6 +128,10 @@
             <td><input type="submit" id="revenue_per_song" name="revenue_per_song" value="Revenue Per Song" disabled="true"></td>
             <td><input type="submit" id="artist_song_count" name="artist_song_count" value="Artist Song Count" disabled="true"></td>
             <td><input type="submit" id="revenue_per_artist" name="revenue_per_artist" value="Revenue Per Artist" disabled="true"></td>
+            <td><input type="submit" id="purchase_count_rock" name="purchase_count_rock" value="Purchase Count Rock" disabled="true"></td>
+            <td><input type="submit" id="revenue_per_song_rock" name="revenue_per_song_rock" value="Revenue Per Song Rock" disabled="true"></td>
+            <td><input type="submit" id="artist_song_count_rock" name="artist_song_count_rock" value="Artist Song Count Rock" disabled="true"></td>
+            <td><input type="submit" id="revenue_per_artist_rock" name="revenue_per_artist_rock" value="Revenue Per Artist Rock" disabled="true"></td>
             <td><input type="submit" id="word_count" name="word_count" value="Word Count" disabled="true"></td>
             <td><input type="submit" id="index" name="index" value="Index" disabled="true"></td>
             <td><input type="submit" id="phrases" name="phrases" value="Phrases" disabled="true"></td>

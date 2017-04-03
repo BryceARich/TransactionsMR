@@ -77,6 +77,10 @@ class FileMetadata(db.Model):
   revenuepersong_link = db.StringProperty()
   artistsongcount_link = db.StringProperty()
   revenueperartist_link = db.StringProperty()
+  purchasecountrock_link = db.StringProperty()
+  revenuepersongrock_link = db.StringProperty()
+  artistsongcountrock_link = db.StringProperty()
+  revenueperartistrock_link = db.StringProperty()
   wordcount_link = db.StringProperty()
   index_link = db.StringProperty()
   phrases_link = db.StringProperty()
@@ -179,6 +183,14 @@ class IndexHandler(webapp2.RequestHandler):
       pipeline = ArtistSongCountPipeline(filekey, blob_key)
     elif self.request.get("revenue_per_artist"):
       pipeline = RevenuePerArtistPipeline(filekey, blob_key)
+    elif self.request.get("purchase_count_rock"):
+      pipeline = PurchaseCountRockPipeline(filekey, blob_key)
+    elif self.request.get("revenue_per_song_rock"):
+      pipeline = RevenuePerSongRockPipeline(filekey, blob_key)
+    elif self.request.get("artist_song_count_rock"):
+      pipeline = ArtistSongCountRockPipeline(filekey, blob_key)
+    elif self.request.get("revenue_per_artist_rock"):
+      pipeline = RevenuePerArtistRockPipeline(filekey, blob_key)
     elif self.request.get("word_count"):
       pipeline = WordCountPipeline(filekey, blob_key)
     elif self.request.get("index"):
@@ -223,10 +235,10 @@ def purchase_count_map(data):
   logging.debug("Received %s", entry.filename)
   for s in split_into_purchases(text):
     a = split_into_attributes(s)
-    if len(a) == 7:
+    if len(a) == 8:
       song = a[2] + ", " + a[3] + ", " + a[4]
       yield (song, "")
-    elif len(a) == 8:
+    elif len(a) == 7:
       song = a[2] + ", " + a[3]
       yield (song, "")
 
@@ -243,10 +255,10 @@ def revenue_per_song_map(data):
   logging.debug("Received %s", entry.filename)
   for s in split_into_purchases(text):
     a = split_into_attributes(s)
-    if len(a) == 7:
+    if len(a) == 8:
       song = a[2] + ", " + a[3] + ", " + a[4]
       yield (song, a[len(a)-1])
-    elif len(a) == 8:
+    elif len(a) == 7:
       song = a[2] + ", " + a[3]
       yield (song, a[len(a)-1])
 
@@ -267,10 +279,10 @@ def artist_song_count_map(data):
   logging.debug("Received %s", entry.filename)
   for s in split_into_purchases(text):
     a = split_into_attributes(s)
-    if len(a) == 7:
+    if len(a) == 8:
       artist =a[3]
       yield (artist, "")
-    elif len(a) == 8:
+    elif len(a) == 7:
       artist = a[3]
       yield (artist, "")
 
@@ -287,10 +299,10 @@ def revenue_per_artist_map(data):
   logging.debug("Received %s", entry.filename)
   for s in split_into_purchases(text):
     a = split_into_attributes(s)
-    if len(a) == 7:
+    if len(a) == 8:
       artist = a[3]
       yield (artist, a[len(a)-1])
-    elif len(a) == 8:
+    elif len(a) == 7:
       artist = a[3]
       yield (artist, a[len(a)-1])
 
@@ -302,6 +314,103 @@ def revenue_per_artist_reduce(key, values):
     dec = float(v)
     total += dec
   yield "%s; %.2f\n" % (key, total)
+
+def purchase_count_rock_map(data):
+  """Purchase Count Map Functions"""
+  (entry, text_fn) = data
+  text = text_fn()
+
+  logging.debug("Received %s", entry.filename)
+  for s in split_into_purchases(text):
+    a = split_into_attributes(s)
+    if len(a) == 8:
+      if a[5] == "Rock":
+        song = a[2] + ", " + a[3] + ", " + a[4]
+        yield (song, "")
+    elif len(a) == 7:
+      if a[4] == "Rock":
+        song = a[2] + ", " + a[3]
+        yield (song, "")
+
+
+def purchase_count_rock_reduce(key, values):
+  """Purchase count reduce function"""
+  yield "%s; %d\n" % (key, len(values))
+
+def revenue_per_song_rock_map(data):
+  """Revenue Per Song Map Functions"""
+  (entry, text_fn) = data
+  text = text_fn()
+
+  logging.debug("Received %s", entry.filename)
+  for s in split_into_purchases(text):
+    a = split_into_attributes(s)
+    if len(a) == 8:
+      if a[5] == "Rock":
+        song = a[2] + ", " + a[3] + ", " + a[4]
+        yield (song, a[len(a)-1])
+    elif len(a) == 7:
+      if a[4] == "Rock":
+        song = a[2] + ", " + a[3]
+        yield (song, a[len(a)-1])
+
+
+def revenue_per_song_rock_reduce(key, values):
+  """Revenue Per Song reduce function"""
+  total = 0.0
+  for v in values:
+    dec = float(v)
+    total += dec
+  yield "%s; %.2f\n" % (key, total)
+
+def artist_song_count_rock_map(data):
+  """Artist Song Count Map Functions"""
+  (entry, text_fn) = data
+  text = text_fn()
+
+  logging.debug("Received %s", entry.filename)
+  for s in split_into_purchases(text):
+    a = split_into_attributes(s)
+    if len(a) == 8:
+      if a[5] == "Rock":
+        artist =a[3]
+        yield (artist, "")
+    elif len(a) == 7:
+      if a[4] == "Rock":
+        artist = a[3]
+        yield (artist, "")
+
+
+def artist_song_count_rock_reduce(key, values):
+  """Artist Song Count reduce function"""
+  yield "%s; %d\n" % (key, len(values))
+
+def revenue_per_artist_rock_map(data):
+  """Revenue Per Artist Map Functions"""
+  (entry, text_fn) = data
+  text = text_fn()
+
+  logging.debug("Received %s", entry.filename)
+  for s in split_into_purchases(text):
+    a = split_into_attributes(s)
+    if len(a) == 8:
+      if a[5] == "Rock":
+        artist = a[3]
+        yield (artist, a[len(a)-1])
+    elif len(a) == 7:
+      if a[4] == "Rock":
+        artist = a[3]
+        yield (artist, a[len(a)-1])
+
+
+def revenue_per_artist_rock_reduce(key, values):
+  """Revenue Per Artist reduce function"""
+  total = 0.0
+  for v in values:
+    dec = float(v)
+    total += dec
+  yield "%s; %.2f\n" % (key, total)
+
 
 def word_count_map(data):
   """Word count map function."""
@@ -484,6 +593,122 @@ class RevenuePerArtistPipeline(base_handler.PipelineBase):
         shards=1)
     yield StoreOutput("RevenuePerArtist", filekey, output)
 
+class PurchaseCountRockPipeline(base_handler.PipelineBase):
+  """A pipeline to run Purchase count of each unique song.
+
+  Args:
+    blobkey: blobkey to process as string. Should be a zip archive with
+      text files inside.
+  """
+
+  def run(self, filekey, blobkey):
+    logging.debug("filename is %s" % filekey)
+    bucket_name = app_identity.get_default_gcs_bucket_name()
+    output = yield mapreduce_pipeline.MapreducePipeline(
+        "purchase_count_rock",
+        "main.purchase_count_rock_map",
+        "main.purchase_count_rock_reduce",
+        "mapreduce.input_readers.BlobstoreZipInputReader",
+        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
+        mapper_params={
+            "blob_key": blobkey,
+        },
+        reducer_params={
+            "output_writer": {
+                "bucket_name": bucket_name,
+                "content_type": "text/plain",
+            }
+        },
+        shards=1)
+    yield StoreOutput("PurchaseCountRock", filekey, output)
+
+class RevenuePerSongRockPipeline(base_handler.PipelineBase):
+  """A pipeline to run Revenue Per artist of each unique song.
+
+  Args:
+    blobkey: blobkey to process as string. Should be a zip archive with
+      text files inside.
+  """
+
+  def run(self, filekey, blobkey):
+    logging.debug("filename is %s" % filekey)
+    bucket_name = app_identity.get_default_gcs_bucket_name()
+    output = yield mapreduce_pipeline.MapreducePipeline(
+        "revenue_per_song_rock",
+        "main.revenue_per_song_rock_map",
+        "main.revenue_per_song_rock_reduce",
+        "mapreduce.input_readers.BlobstoreZipInputReader",
+        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
+        mapper_params={
+            "blob_key": blobkey,
+        },
+        reducer_params={
+            "output_writer": {
+                "bucket_name": bucket_name,
+                "content_type": "text/plain",
+            }
+        },
+        shards=1)
+    yield StoreOutput("RevenuePerSongRock", filekey, output)
+
+class ArtistSongCountRockPipeline(base_handler.PipelineBase):
+  """A pipeline to run Artist Song Count of each unique song.
+
+  Args:
+    blobkey: blobkey to process as string. Should be a zip archive with
+      text files inside.
+  """
+
+  def run(self, filekey, blobkey):
+    logging.debug("filename is %s" % filekey)
+    bucket_name = app_identity.get_default_gcs_bucket_name()
+    output = yield mapreduce_pipeline.MapreducePipeline(
+        "artist_song_count_rock",
+        "main.artist_song_count_rock_map",
+        "main.artist_song_count_rock_reduce",
+        "mapreduce.input_readers.BlobstoreZipInputReader",
+        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
+        mapper_params={
+            "blob_key": blobkey,
+        },
+        reducer_params={
+            "output_writer": {
+                "bucket_name": bucket_name,
+                "content_type": "text/plain",
+            }
+        },
+        shards=1)
+    yield StoreOutput("ArtistSongCountRock", filekey, output)
+
+class RevenuePerArtistRockPipeline(base_handler.PipelineBase):
+  """A pipeline to run Revenue Per Song of each unique song.
+
+  Args:
+    blobkey: blobkey to process as string. Should be a zip archive with
+      text files inside.
+  """
+
+  def run(self, filekey, blobkey):
+    logging.debug("filename is %s" % filekey)
+    bucket_name = app_identity.get_default_gcs_bucket_name()
+    output = yield mapreduce_pipeline.MapreducePipeline(
+        "revenue_per_artist_rock",
+        "main.revenue_per_artist_rock_map",
+        "main.revenue_per_artist_rock_reduce",
+        "mapreduce.input_readers.BlobstoreZipInputReader",
+        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
+        mapper_params={
+            "blob_key": blobkey,
+        },
+        reducer_params={
+            "output_writer": {
+                "bucket_name": bucket_name,
+                "content_type": "text/plain",
+            }
+        },
+        shards=1)
+    yield StoreOutput("RevenuePerArtistRock", filekey, output)
+
 
 class WordCountPipeline(base_handler.PipelineBase):
   """A pipeline to run Word count demo.
@@ -600,6 +825,14 @@ class StoreOutput(base_handler.PipelineBase):
       m.artistsongcount_link = url_path
     elif mr_type == "RevenuePerArtist":
       m.revenueperartist_link = url_path
+    elif mr_type == "PurchaseCountRock":
+      m.purchasecountrock_link = url_path
+    elif mr_type == "RevenuePerSongRock":
+      m.revenuepersongrock_link = url_path
+    elif mr_type == "ArtistSongCountRock":
+      m.artistsongcountrock_link = url_path
+    elif mr_type == "RevenuePerArtistRock":
+      m.revenueperartistrock_link = url_path
     elif mr_type == "WordCount":
       m.wordcount_link = url_path
     elif mr_type == "Index":
