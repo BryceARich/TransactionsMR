@@ -244,18 +244,40 @@ def transaction_sets_reduce(key, values):
 def song_pairs_map(data):
   """Word count map function."""
   text = data
-  print(data)
   for purchase in data:
     for formatted_purchase in purchase.split("\n"):
       s = split_into_songs(purchase)
       if len(s) > 1:
         pair_of_songs = itertools.permutations(s, 2)
         for p in pair_of_songs:
-          yield (p, "")
+          yield (p[0] + ";" + p[1], "")
 
 def song_pairs_reduce(key, values):
   """Word count reduce function."""
   yield "%s; %d\n" % (key, len(values)/2)
+
+def top_pair_map(data):
+  """Word count map function."""
+  text = data
+  for purchase in text:
+      s = purchase.split(";")
+      if len(s) == 3:
+        yield(s[0], s[2] + ";" + s[1])
+
+def top_pair_reduce(key, values):
+  """Word count reduce function."""
+  max_song = None
+  max_val = None
+  for val in values:
+    num, song2 = val.split(";")
+    num = int(num)
+    if max_song == None:
+      max_song = song2
+      max_val = num
+    elif num > max_val:
+      max_song = song2
+      max_val = num
+  yield "%s; %s; %d\n" % (key, max_song, max_val)
 
 def word_count_map(data):
   """Word count map function."""
@@ -374,7 +396,22 @@ class SongPairsPipeline(base_handler.PipelineBase):
             }
         },
         shards=16)
-    yield StoreOutput("SongPairs", filekey, pair_of_songs)
+    top_pair = yield mapreduce_pipeline.MapreducePipeline(
+        "top_pair",
+        "main.top_pair_map",
+        "main.top_pair_reduce",
+        "mapreduce.input_readers.GoogleCloudStorageInputReader",
+        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
+        mapper_params=(
+            yield GCSMapperParams(pair_of_songs)),
+        reducer_params={
+            "output_writer": {
+                "bucket_name": bucket_name,
+                "content_type": "text/plain",
+            }
+        },
+        shards=16)
+    yield StoreOutput("SongPairs", filekey, top_pair)
     # yield StoreOutput("SongPairs", filekey, transactions)
 
 
