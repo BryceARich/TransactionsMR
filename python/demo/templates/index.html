@@ -17,6 +17,7 @@
           <td>name</td>
           <td>uploaded on</td>
           <td>source</td>
+          <td>songpairs link</td>
           <td>wordcount link</td>
           <td>index link</td>
           <td>phrases link</td>
@@ -28,6 +29,13 @@
           <td><a href="/blobstore/{{ item.blobkey }}">{{ item.filename }}</a></td>
           <td>{{ item.uploadedOn }}</td>
           <td>{{ item.source }}</td>
+          <td>
+            {% if item.songpairs_link %}
+              {% for link in item.songpairs_link %}
+                <a href="{{ link }}">songpairs</a>
+              {% endfor %}
+            {% endif %}
+          </td>
           <td>
             {% if item.wordcount_link %}
             <a href="{{ item.wordcount_link }}">wordcount</a>
@@ -76,6 +84,7 @@
         <br />
         <table>
           <tr>
+            <td><input type="submit" id="song_pairs" name="song_pairs" value="Song Pairs" disabled="true"></td>
             <td><input type="submit" id="word_count" name="word_count" value="Word Count" disabled="true"></td>
             <td><input type="submit" id="index" name="index" value="Index" disabled="true"></td>
             <td><input type="submit" id="phrases" name="phrases" value="Phrases" disabled="true"></td>

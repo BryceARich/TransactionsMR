@@ -35,6 +35,7 @@ import logging
 import re
 import urllib
 import webapp2
+import itertools
 
 from google.appengine.ext import blobstore
 from google.appengine.ext import db
@@ -73,6 +74,7 @@ class FileMetadata(db.Model):
   uploadedOn = db.DateTimeProperty()
   source = db.StringProperty()
   blobkey = db.StringProperty()
+  songpairs_link = db.StringListProperty()
   wordcount_link = db.StringProperty()
   index_link = db.StringProperty()
   phrases_link = db.StringProperty()
@@ -167,7 +169,9 @@ class IndexHandler(webapp2.RequestHandler):
     filekey = self.request.get("filekey")
     blob_key = self.request.get("blobkey")
 
-    if self.request.get("word_count"):
+    if self.request.get("song_pairs"):
+      pipeline = SongPairsPipeline(filekey, blob_key)
+    elif self.request.get("word_count"):
       pipeline = WordCountPipeline(filekey, blob_key)
     elif self.request.get("index"):
       pipeline = IndexPipeline(filekey, blob_key)
@@ -191,6 +195,67 @@ def split_into_words(s):
   s = re.sub(r"[_0-9]+", " ", s)
   return s.split()
 
+def split_into_purchases(s):
+  """Split the text into a list of purchases"""
+  return re.split(r"\r|\n",s)
+
+def split_into_attributes(s):
+  """Split each purchase into a list of its attributes"""
+  return re.split(r"\t",s)
+
+def split_into_songs(s):
+  """Split the text into a list of purchases"""
+  s = re.split(r"\t",s)
+  for song in s:
+    if '\n' in song:
+      song = song.rstrip('\n')
+  s.pop(0)
+  for i in range(0,len(s)):
+    s[i] = s[i].strip();
+  s[-1] = s[-1].strip();
+  return s
+
+def transaction_sets_map(data):
+  """Word count map function."""
+  (entry, text_fn) = data
+  text = text_fn()
+
+  logging.debug("Got %s", entry.filename)
+  for s in split_into_purchases(text):
+    a = split_into_attributes(s)
+    if len(a) == 8:
+      tran = a[0] + ", " + a[1];
+      song = a[2] + ", " + a[3] + ", " + a[4]
+      yield(tran, song)
+    elif len(a) == 7:
+      tran = a[0] + ", " + a[1];
+      song = a[2] + ", " + a[3]
+      yield(tran, song)
+
+def transaction_sets_reduce(key, values):
+  """Word count reduce function."""
+  out = "%s" % (key)
+  for val in values:
+    if "\n" in val:
+      val = val.strip('\n')
+    out += "\t %s" % (val)
+  yield "%s\n" % (out)
+
+def song_pairs_map(data):
+  """Word count map function."""
+  text = data
+  print(data)
+  for purchase in data:
+    for formatted_purchase in purchase.split("\n"):
+      s = split_into_songs(purchase)
+      if len(s) > 1:
+        pair_of_songs = itertools.permutations(s, 2)
+        for p in pair_of_songs:
+          yield (p, "")
+
+def song_pairs_reduce(key, values):
+  """Word count reduce function."""
+  yield "%s; %d\n" % (key, len(values)/2)
 
 def word_count_map(data):
   """Word count map function."""
@@ -257,6 +322,16 @@ def phrases_reduce(key, values):
     if count > threshold:
       yield "%s:%s\n" % (words, filename)
 
+class GCSMapperParams(base_handler.PipelineBase): 
+  def run(self, GCSPath): 
+    bucket_name = app_identity.get_default_gcs_bucket_name()
+    return { 
+    "input_reader": { 
+    "bucket_name": bucket_name, 
+    "objects": [path.split('/', 2)[2] for path in GCSPath], 
+    } 
+    } 
+
 class SongPairsPipeline(base_handler.PipelineBase):
   """A pipeline to run Word count demo.
 
@@ -268,10 +343,10 @@ class SongPairsPipeline(base_handler.PipelineBase):
   def run(self, filekey, blobkey):
     logging.debug("filename is %s" % filekey)
     bucket_name = app_identity.get_default_gcs_bucket_name()
-    output = yield mapreduce_pipeline.MapreducePipeline(
-        "song_pairs",
-        "main.song_pairs_map",
-        "main.song_pairs_reduce",
+    transactions = yield mapreduce_pipeline.MapreducePipeline(
+        "transaction_sets",
+        "main.transaction_sets_map",
+        "main.transaction_sets_reduce",
         "mapreduce.input_readers.BlobstoreZipInputReader",
         "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
         mapper_params={
@@ -284,7 +359,23 @@ class SongPairsPipeline(base_handler.PipelineBase):
             }
         },
         shards=16)
-    yield StoreOutput("WordCount", filekey, output)
+    pair_of_songs = yield mapreduce_pipeline.MapreducePipeline(
+        "song_pairs",
+        "main.song_pairs_map",
+        "main.song_pairs_reduce",
+        "mapreduce.input_readers.GoogleCloudStorageInputReader",
+        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
+        mapper_params=(
+            yield GCSMapperParams(transactions)),
+        reducer_params={
+            "output_writer": {
+                "bucket_name": bucket_name,
+                "content_type": "text/plain",
+            }
+        },
+        shards=16)
+    yield StoreOutput("SongPairs", filekey, pair_of_songs)
+    # yield StoreOutput("SongPairs", filekey, transactions)
 
 
 class WordCountPipeline(base_handler.PipelineBase):
@@ -390,11 +481,17 @@ class StoreOutput(base_handler.PipelineBase):
     key = db.Key(encoded=encoded_key)
     m = FileMetadata.get(key)
 
-    blobstore_filename = "/gs" + output[0]
-    blobstore_gs_key = blobstore.create_gs_key(blobstore_filename)
-    url_path = "/blobstore/" + blobstore_gs_key
+    url_path = []
 
-    if mr_type == "WordCount":
+    for o in output:
+      blobstore_filename = "/gs" + o
+      blobstore_gs_key = blobstore.create_gs_key(blobstore_filename)
+      curr_path = "/blobstore/" + blobstore_gs_key
+      url_path += [curr_path]
+
+    if mr_type == "SongPairs":
+      m.songpairs_link = url_path
+    elif mr_type == "WordCount":
       m.wordcount_link = url_path
     elif mr_type == "Index":
       m.index_link = url_path
