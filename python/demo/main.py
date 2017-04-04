@@ -210,10 +210,10 @@ def purchase_count_map(data):
   for s in split_into_purchases(text):
     a = split_into_attributes(s)
     if len(a) == 8:
-      song = a[2] + ", " + a[3] + ", " + a[4]
+      song = a[2].strip() + ", " + a[3].strip() + ", " + a[4].strip()
       yield (song, "")
     elif len(a) == 7:
-      song = a[2] + ", " + a[3]
+      song = a[2].strip() + ", " + a[3].strip()
       yield (song, "")
 
 
