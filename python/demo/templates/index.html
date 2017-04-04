@@ -25,9 +25,6 @@
           <td>revenuepersongrock link</td>
           <td>artistsongcountrock link</td>
           <td>revenueperartistrock link</td>
-          <td>wordcount link</td>
-          <td>index link</td>
-          <td>phrases link</td>
         </tr>
         {% for item in items %}
         <tr>
@@ -45,66 +42,51 @@
           </td>
           <td>
             {% if item.revenuepersong_link %}
-              {% for link in item.purchasecount_link %}
+              {% for link in item.revenuepersong_link %}
                 <a href="{{ link }}">revenuepersong</a>
               {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.artistsongcount_link %}
-              {% for link in item.purchasecount_link %}
+              {% for link in item.artistsongcount_link %}
                 <a href="{{ link }}">artistsongcount</a>
               {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.revenueperartist_link %}
-              {% for link in item.purchasecount_link %}
+              {% for link in item.revenueperartist_link %}
                 <a href="{{ link }}">revenueperartist</a>
               {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.purchasecountrock_link %}
-              {% for link in item.purchasecount_link %}
+              {% for link in item.purchasecountrock_link %}
                 <a href="{{ link }}">purchasecountrock</a>
               {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.revenuepersongrock_link %}
-              {% for link in item.purchasecount_link %}
+              {% for link in item.revenuepersongrock_link %}
                 <a href="{{ link }}">revenuepersongrock</a>
               {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.artistsongcountrock_link %}
-              {% for link in item.purchasecount_link %}
+              {% for link in item.artistsongcountrock_link %}
                 <a href="{{ link }}">artistsongcountrock</a>
               {% endfor %}
             {% endif %}
           </td>
           <td>
             {% if item.revenueperartistrock_link %}
-              {% for link in item.purchasecount_link %}
+              {% for link in item.revenueperartistrock_link %}
                 <a href="{{ link }}">revenueperartistrock</a>
               {% endfor %}
-            {% endif %}
-          </td>
-          <td>
-            {% if item.wordcount_link %}
-            <a href="{{ item.wordcount_link }}">wordcount</a>
-            {% endif %}
-          </td>
-          <td>
-            {% if item.index_link %}
-            <a href="{{ item.index_link }}">index</a>
-            {% endif %}
-          </td>
-          <td>
-            {% if item.phrases_link %}
-            <a href="{{ item.phrases_link }}">phrases</a>
             {% endif %}
           </td>
         </tr>
@@ -148,9 +130,6 @@
             <td><input type="submit" id="revenue_per_song_rock" name="revenue_per_song_rock" value="Revenue Per Song Rock" disabled="true"></td>
             <td><input type="submit" id="artist_song_count_rock" name="artist_song_count_rock" value="Artist Song Count Rock" disabled="true"></td>
             <td><input type="submit" id="revenue_per_artist_rock" name="revenue_per_artist_rock" value="Revenue Per Artist Rock" disabled="true"></td>
-            <td><input type="submit" id="word_count" name="word_count" value="Word Count" disabled="true"></td>
-            <td><input type="submit" id="index" name="index" value="Index" disabled="true"></td>
-            <td><input type="submit" id="phrases" name="phrases" value="Phrases" disabled="true"></td>
           </tr>
         </table>
       </form>

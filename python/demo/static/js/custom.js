@@ -35,8 +35,5 @@ function updateForm(filekey, blobkey, filename) {
   $('#revenue_per_song_rock').removeAttr('disabled');
   $('#artist_song_count_rock').removeAttr('disabled');
   $('#revenue_per_artist_rock').removeAttr('disabled');
-  $('#word_count').removeAttr('disabled');
-  $('#index').removeAttr('disabled');
-  $('#phrases').removeAttr('disabled');
 }
 

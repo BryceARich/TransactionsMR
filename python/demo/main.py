@@ -81,9 +81,6 @@ class FileMetadata(db.Model):
   revenuepersongrock_link = db.StringListProperty()
   artistsongcountrock_link = db.StringListProperty()
   revenueperartistrock_link = db.StringListProperty()
-  wordcount_link = db.StringProperty()
-  index_link = db.StringProperty()
-  phrases_link = db.StringProperty()
 
   @staticmethod
   def getFirstKeyForUser(username):
@@ -191,36 +188,13 @@ class IndexHandler(webapp2.RequestHandler):
       pipeline = ArtistSongCountRockPipeline(filekey, blob_key)
     elif self.request.get("revenue_per_artist_rock"):
       pipeline = RevenuePerArtistRockPipeline(filekey, blob_key)
-    elif self.request.get("word_count"):
-      pipeline = WordCountPipeline(filekey, blob_key)
-    elif self.request.get("index"):
-      pipeline = IndexPipeline(filekey, blob_key)
-    else:
-      pipeline = PhrasesPipeline(filekey, blob_key)
 
     pipeline.start()
     self.redirect(pipeline.base_path + "/status?root=" + pipeline.pipeline_id)
 
 
-def split_into_sentences(s):
-  """Split text into list of sentences."""
-  s = re.sub(r"\s+", " ", s)
-  s = re.sub(r"[\\.\\?\\!]", "\n", s)
-  return s.split("\n")
-
-
-def split_into_words(s):
-  """Split a sentence into list of words."""
-  s = re.sub(r"\W+", " ", s)
-  s = re.sub(r"[_0-9]+", " ", s)
-  return s.split()
-
 def split_into_purchases(s):
   """Split the text into a list of purchases"""
-  # s = re.split(r"\r|\n",s)
-  # for purchase in s:
-  #   if re.search(r"[0-9]",purchase):
-
   return re.split(r"\r|\n",s)
 
 def split_into_attributes(s):
@@ -410,72 +384,6 @@ def revenue_per_artist_rock_reduce(key, values):
     dec = float(v)
     total += dec
   yield "%s; %.2f\n" % (key, total)
-
-
-def word_count_map(data):
-  """Word count map function."""
-  (entry, text_fn) = data
-  text = text_fn()
-
-  logging.debug("Got %s", entry.filename)
-  for s in split_into_sentences(text):
-    for w in split_into_words(s.lower()):
-      yield (w, "")
-
-
-def word_count_reduce(key, values):
-  """Word count reduce function."""
-  yield "%s: %d\n" % (key, len(values))
-
-
-def index_map(data):
-  """Index demo map function."""
-  (entry, text_fn) = data
-  text = text_fn()
-
-  logging.debug("Got %s", entry.filename)
-  for s in split_into_sentences(text):
-    for w in split_into_words(s.lower()):
-      yield (w, entry.filename)
-
-
-def index_reduce(key, values):
-  """Index demo reduce function."""
-  yield "%s: %s\n" % (key, list(set(values)))
-
-
-PHRASE_LENGTH = 4
-
-
-def phrases_map(data):
-  """Phrases demo map function."""
-  (entry, text_fn) = data
-  text = text_fn()
-  filename = entry.filename
-
-  logging.debug("Got %s", filename)
-  for s in split_into_sentences(text):
-    words = split_into_words(s.lower())
-    if len(words) < PHRASE_LENGTH:
-      yield (":".join(words), filename)
-      continue
-    for i in range(0, len(words) - PHRASE_LENGTH):
-      yield (":".join(words[i:i+PHRASE_LENGTH]), filename)
-
-
-def phrases_reduce(key, values):
-  """Phrases demo reduce function."""
-  if len(values) < 10:
-    return
-  counts = {}
-  for filename in values:
-    counts[filename] = counts.get(filename, 0) + 1
-
-  words = re.sub(r":", " ", key)
-  threshold = len(values) / 2
-  for filename, count in counts.items():
-    if count > threshold:
-      yield "%s:%s\n" % (words, filename)
 
 class PurchaseCountPipeline(base_handler.PipelineBase):
   """A pipeline to run Purchase count of each unique song.
@@ -709,96 +617,6 @@ class RevenuePerArtistRockPipeline(base_handler.PipelineBase):
         shards=2)
     yield StoreOutput("RevenuePerArtistRock", filekey, output)
 
-
-class WordCountPipeline(base_handler.PipelineBase):
-  """A pipeline to run Word count demo.
-
-  Args:
-    blobkey: blobkey to process as string. Should be a zip archive with
-      text files inside.
-  """
-
-  def run(self, filekey, blobkey):
-    logging.debug("filename is %s" % filekey)
-    bucket_name = app_identity.get_default_gcs_bucket_name()
-    output = yield mapreduce_pipeline.MapreducePipeline(
-        "word_count",
-        "main.word_count_map",
-        "main.word_count_reduce",
-        "mapreduce.input_readers.BlobstoreZipInputReader",
-        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
-        mapper_params={
-            "blob_key": blobkey,
-        },
-        reducer_params={
-            "output_writer": {
-                "bucket_name": bucket_name,
-                "content_type": "text/plain",
-            }
-        },
-        shards=16)
-    yield StoreOutput("WordCount", filekey, output)
-
-
-class IndexPipeline(base_handler.PipelineBase):
-  """A pipeline to run Index demo.
-
-  Args:
-    blobkey: blobkey to process as string. Should be a zip archive with
-      text files inside.
-  """
-
-
-  def run(self, filekey, blobkey):
-    bucket_name = app_identity.get_default_gcs_bucket_name()
-    output = yield mapreduce_pipeline.MapreducePipeline(
-        "index",
-        "main.index_map",
-        "main.index_reduce",
-        "mapreduce.input_readers.BlobstoreZipInputReader",
-        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
-        mapper_params={
-            "blob_key": blobkey,
-        },
-        reducer_params={
-            "output_writer": {
-                "bucket_name": bucket_name,
-                "content_type": "text/plain",
-            }
-        },
-        shards=16)
-    yield StoreOutput("Index", filekey, output)
-
-
-class PhrasesPipeline(base_handler.PipelineBase):
-  """A pipeline to run Phrases demo.
-
-  Args:
-    blobkey: blobkey to process as string. Should be a zip archive with
-      text files inside.
-  """
-
-  def run(self, filekey, blobkey):
-    bucket_name = app_identity.get_default_gcs_bucket_name()
-    output = yield mapreduce_pipeline.MapreducePipeline(
-        "phrases",
-        "main.phrases_map",
-        "main.phrases_reduce",
-        "mapreduce.input_readers.BlobstoreZipInputReader",
-        "mapreduce.output_writers.GoogleCloudStorageOutputWriter",
-        mapper_params={
-            "blob_key": blobkey,
-        },
-        reducer_params={
-            "output_writer": {
-                "bucket_name": bucket_name,
-                "content_type": "text/plain",
-            }
-        },
-        shards=16)
-    yield StoreOutput("Phrases", filekey, output)
-
-
 class StoreOutput(base_handler.PipelineBase):
   """A pipeline to store the result of the MapReduce job in the database.
 
@@ -839,12 +657,6 @@ class StoreOutput(base_handler.PipelineBase):
       m.artistsongcountrock_link = url_path
     elif mr_type == "RevenuePerArtistRock":
       m.revenueperartistrock_link = url_path
-    elif mr_type == "WordCount":
-      m.wordcount_link = url_path
-    elif mr_type == "Index":
-      m.index_link = url_path
-    elif mr_type == "Phrases":
-      m.phrases_link = url_path
 
     m.put()
 
