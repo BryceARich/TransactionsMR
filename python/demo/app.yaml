@@ -1,5 +1,3 @@
-application: mapreduce-demo
-version: default
 module: default
 runtime: python27
 api_version: 1
@@ -16,7 +14,6 @@ handlers:
 
 - url: .*
   script: main.app
-  login: admin
 
 includes:
 - mapreduce/include.yaml
